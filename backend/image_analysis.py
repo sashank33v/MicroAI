@@ -187,16 +187,21 @@ def detect_grain_boundaries(preprocessed: np.ndarray) -> tuple:
         """Safer weight computation for RAG."""
         try:
             boundary = n.get('boundary', None)
-            if boundary is not None:
-                return float(np.mean(boundary_map[boundary]))
+            if boundary is not None and len(boundary) > 0:
+                # Ensure we handle the boundary coordinates as a tuple for indexing
+                return float(np.mean(boundary_map[tuple(boundary)]))
         except Exception:
             pass
         return 1.0
     
+    def merge_nodes(graph, src, dst):
+        """Safe merge function for RAG."""
+        pass
+    
     g = graph.rag_boundary(labels, boundary_map)
     labels_merged = graph.merge_hierarchical(labels, g, thresh=0.08, rag_copy=False,
                                             in_place_merge=True,
-                                            merge_func=None, # Use default RAG.merge_nodes
+                                            merge_func=merge_nodes,
                                             weight_func=weight_boundary)
     
     # 4. Final Masks
