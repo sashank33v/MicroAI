@@ -402,8 +402,9 @@ async def chat_with_ai(body: ChatRequest):
         )
         return {"reply": response.choices[0].message.content}
     except Exception as e:
-        print(f"Chat Error: {e}")
-        return {"reply": "I'm sorry, I encountered an error while trying to process your question."}
+        import traceback
+        traceback.print_exc()
+        return JSONResponse(status_code=500, content={"error": str(e)})
 
 # ── Dashboard Stats ──
 
