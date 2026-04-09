@@ -184,16 +184,19 @@ def detect_grain_boundaries(preprocessed: np.ndarray) -> tuple:
     
     # 3. RAG-based Region Merging (Eliminates fragmenting)
     def weight_boundary(graph, src, dst, n):
-        return np.mean(boundary_map[n['boundary']])
-    
-    def merge_nodes(graph, src, dst):
-        """Custom node merging for RAG."""
-        pass  # merge_hierarchical handles the graph structure; we just need a no-op or attribute merger
+        """Safer weight computation for RAG."""
+        try:
+            boundary = n.get('boundary', None)
+            if boundary is not None:
+                return float(np.mean(boundary_map[boundary]))
+        except Exception:
+            pass
+        return 1.0
     
     g = graph.rag_boundary(labels, boundary_map)
     labels_merged = graph.merge_hierarchical(labels, g, thresh=0.08, rag_copy=False,
                                             in_place_merge=True,
-                                            merge_func=merge_nodes,
+                                            merge_func=None, # Use default RAG.merge_nodes
                                             weight_func=weight_boundary)
     
     # 4. Final Masks
