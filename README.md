@@ -1,103 +1,139 @@
-# MicroAI Command Center 🔬
+# <div align="center">MicroAI • Master Craft Metallurgical Engine</div>
+<div align="center">
+  <i>Sci-Fi Mechanical HUD Interface for Advanced Microstructure Analysis</i>
+</div>
 
-## Overview
-**MicroAI** is an ultra-premium, AI-driven metallurgical image analysis platform achieving Master Craft Pro-Max level accuracy (>80%). Built for Next-Gen laboratories, it replaces classical, error-prone manual metallography with adaptive computer vision and large-language model (LLM) reasoning. 
+<br />
 
-Unlike traditional platforms hardcoded only for carbon-steel, MicroAI utilizes **Color-Aware Phase Clustering** and **Material-Agnostic Physics Extraction**, allowing it to dynamically identify standard morphological anomalies in Aluminum, Brass, Titanium, and complex Superalloys.
+<div align="center">
+  <img src="https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js" alt="Next.js" />
+  <img src="https://img.shields.io/badge/React-19-00ff94?style=for-the-badge&logo=react&logoColor=black" alt="React" />
+  <img src="https://img.shields.io/badge/TailwindCSS-v4-38bdf8?style=for-the-badge&logo=tailwindcss" alt="Tailwind" />
+  <img src="https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
+  <img src="https://img.shields.io/badge/FastAPI-0.100-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/Groq-Cloud-f59e0b?style=for-the-badge" alt="Groq" />
+</div>
 
----
+<br />
 
-## 🚀 Tech Stack
-
-### Frontend (User Interface & Telemetry)
-* **Framework:** Next.js (React 18) with TypeScript
-* **Styling:** Tailwind CSS (Sci-Fi Deep Tech styling, Glassmorphism)
-* **Icons & UI:** Lucide React
-* **Charting:** Recharts
-* **Exports:** `html2pdf.js` for instant Client-Side Archival Export
-* **State Management:** Custom React Hooks & Context
-
-### Backend (Algorithmic Processing)
-* **Server Framework:** FastAPI (Python)
-* **Computer Vision:** OpenCV, Scikit-Image 
-* **Machine Learning:** Scikit-Learn (Gaussian Mixture Models)
-* **Generative AI:** Groq Cloud API (Llama 3.3 70B Versatile)
+Welcome to **MicroAI**, an advanced materials engineering and metallurgical characterization suite. It employs deep-tech algorithmic scanning coupled with physical descriptors (grain boundaries, aspect ratios, LBP textures) and large language model expert systems to classify, quantify, and analyze metallic microstructure samples with uncompromised accuracy.
 
 ---
 
-## 🧠 Core Algorithmic Functions
+## 🗂️ 1. Complete Tree Directory Structure
 
-1. **Illumination Equalization:** Adaptive morphological background envelope estimation effectively removes vignetting and shadows from raw microscopic captures.
-2. **Hybrid Ridge Detection:** Fusion of `Meijering`, `Sato`, `Sobel`, and `Hessian` filters creates flawless grain boundary delineations.
-3. **Adaptive RAG Merging:** (Region Adjacency Graphs) Overcomes traditional watershed over-segmentation by statistically merging pseudo-boundaries based on hierarchical weighting.
-4. **Color-Aware Phase Clustering:** Uses LAB multi-channel color-space clustering to isolate Copper, Brass, and other non-ferrous phases without ignoring chrominance.
-5. **LLM Contextualization Engine:** Instead of hardcoded phase guessing, backend algorithms extract raw physical descriptors (Circularity, Eccentricity, Aspect Ratios) and pass them as pure scientific context into the Groq LLM to yield Senior Metallurgist level diagnostics.
-
----
-
-## 🔀 Application & User Flows
-
-### 1. The Dashboard (Command Center) 
-The entry point provides high-level telemetry on past analysis runs. Users track overarching anomaly detection rates, average system confidence, and total metallurgical reports executed under a sleek Bento-Box data grid.
-
-### 2. Analysis Initiation
-Users drag-and-drop a microscopic SEM/Optical capture, providing vital contextual calibrations (**Material Family** and **μm/px Scale Ratio**). This dynamically calibrates the backend physical equations (e.g. ASTM E112 conversion).
-
-### 3. Core Analysis Engine
-The server pipelines the image through the Python algorithmic loop. Data yields are matched and validated asynchronously.
-
-### 4. Interactive Telemetry View
-Users are presented with the processed micrograph overlay. 
-- A **ClipPath interactive slider** allows scrubbing between the raw image and the AI mapping.
-- The **Contextual Chatbot** allows the user to query Groq specifically regarding the current analysis JSON response (e.g., *"Why did the Hall-Petch value decrease here?"*)
-- **Report Generation:** Complete analysis exported seamlessly to PDF.
-
-### 5. Differential Comparison
-Users load two distinct samples into the "Compute Delta" engine. The app extracts variables (Grain topological scale vs. Defect %) and dynamically charts the structural differences across glowing progress telemetry bars.
-
----
-
-## 📁 Directory Tree Structure
+The project employs a completely decoupled Monorepo structure, safely segregating the Python Analytical Engine from the React presentation layers.
 
 ```text
-ai-microstructure-analyzer/
-├── frontend/                     # Next.js UI Application
-│   ├── app/
-│   │   ├── analyze/page.tsx      # Image Upload & Context Form
-│   │   ├── analysis/[id]/page.tsx# Interactive Result Viewer & Chatbot
-│   │   ├── compare/page.tsx      # Differential Delta Engine
-│   │   ├── reports/page.tsx      # Bento-Box Archive Viewer
-│   │   ├── layout.tsx            # Global Shell (Sidebar injected)
-│   │   └── page.tsx              # MicroAI Telemetry Command Center
-│   ├── components/               # Abstracted UI Elements
-│   │   └── Sidebar.tsx           # Application Navigation Dock
-│   ├── lib/
-│   │   └── mock-data.ts          # Core Types & Client Sync Layer
-│   ├── tailwind.config.ts        # Master-Craft Theming Extractor
-│   └── package.json
-│
-├── backend/                      # Python FastAPI Engine
-│   ├── main.py                   # REST API routing & Chat Endpoint
-│   ├── image_analysis.py         # OpenCV / Scikit-Image ML Pipeline
-│   └── requirements.txt          # Python dependencies
-│
-└── README.md
+MicroAI/
+├── backend/                     # [SYS_CORE] Analytical Engine
+│   ├── main.py                  # Core FastAPI process & API Router
+│   ├── requirements.txt         # Pip dependency manifest
+│   ├── test_upload.py           # Integrity/testing suite for image upload
+│   └── venv/                    # Isolated Python Environment
+└── frontend/                    # [SYS_HUD] Master-Craft Presenter
+    ├── app/                     
+    │   ├── analyze/             # Live execution environment UI
+    │   ├── analysis/[id]/       # Contextual Viewer + Expert AI Chat
+    │   ├── compare/             # Differential Target System (Dual-Pane)
+    │   ├── reports/             # Vault / Document Generation Zone
+    │   ├── settings/            # System Configuration Matrix
+    │   ├── layout.tsx           # Global HUD Wrapper & Navigation
+    │   ├── page.tsx             # Main System Dashboard (Command Center)
+    │   └── globals.css          # Tailwind configurations & Custom clip-paths
+    ├── lib/                     
+    │   └── mock-data.ts         # Telemetry simulators & Data structs
+    ├── public/                  # SVG Icons & Static layout telemetry
+    └── package.json             # NPM node dependency manifest
 ```
 
-## 🛠 Active Installation
+---
 
-1. **Global Requirements**: `Node.js 18+`, `Python 3.10+`
-2. **Backend Setup**:
-   ```bash
-   cd backend
-   pip install -r requirements.txt
-   # Ensure GROQ_API_KEY is present in your environment
-   python main.py
-   ```
-3. **Frontend Setup**:
-   ```bash
-   cd frontend
-   npm install
-   npm run dev
-   ```
-4. Access the web app at `http://localhost:3000`
+## ⚙️ 2. Comprehensive Tech Stack
+
+The architecture guarantees blistering fast UI responsiveness and massive backend data-crunching capabilities.
+
+| Domain                 | Technology / Framework       | Usage / Rationale                                                                 |
+|------------------------|------------------------------|-----------------------------------------------------------------------------------|
+| **Frontend Core**      | **Next.js 14**               | Handles page rendering, hydration, and routing constraints natively.              |
+| **UI Presentation**    | **React 19**                 | Component lifecycle management and hook state handling.                           |
+| **HUD Aesthetics**     | **TailwindCSS 4**            | Allows hyper-rapid utility design, targeting borders, glows, and geometric clips. |
+| **Data Viz**           | **Recharts / Mermaid**       | Translates complex grain boundary telemetry into readable vectors.                |
+| **Document Export**    | **html2pdf.js**              | Exports `div` references directly to engineered, presentation-ready PDFs.         |
+| **Backend Core**       | **Python 3.11**              | High performance memory allocation for manipulating large matrices.               |
+| **Web Server**         | **FastAPI**                  | Strict typing and asynchronous performance using Uvicorn.                         |
+| **AI Processing**      | **Groq (Llama-3.3-70b)**      | Expert metallurgical reasoning system parsing morphological characteristics.        |
+| **Matrix Processing**  | **skimage / OpenCV**         | Morphology extraction, background envelopes, LBP texture analysis.                |
+
+---
+
+## 📡 3. Application Flow & Architecture Flowsheet
+
+This chart visualizes the precise lifecycle of an image uploaded by the Operator, parsed through the Engine, and evaluated by the AI.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant Backend
+    participant Groq_LLM
+
+    User->>Frontend: Uploads Microstructure Image (.png/.jpg)
+    Frontend->>Backend: POST /api/analyze (Base64 Binary + material_type)
+    
+    note over Backend: Image Pre-processing Phase
+    Backend->>Backend: Morphological Envelope Calculation (Vignette removal)
+    Backend->>Backend: LAB Color Space Clustering (Phase identification)
+    Backend->>Backend: Physical Descriptors (Circularity, Aspect Ratio)
+    
+    note over Backend: Expert Matrix Aggregation
+    Backend-->>Frontend: Returns Analysis Object (Telemetry + Output Base64)
+    Frontend->>User: Displays Mechanical HUD Viewer & Rendered Boundaries
+    
+    User->>Frontend: Asks Contextual AI a Question ("What is this defect?")
+    Frontend->>Backend: POST /api/chat (Message + Telemetry Context)
+    Backend->>Groq_LLM: Formats Telemetry into Specialized System Prompt
+    Groq_LLM-->>Backend: Returns Formatted Markdown Scientific Response
+    Backend-->>Frontend: Propagates Output to Operator Chat Log
+```
+
+---
+
+## 👨‍🔬 4. User Flow Operations
+
+| Operation Phase                  | Action Steps                                                                                               |
+|----------------------------------|------------------------------------------------------------------------------------------------------------|
+| **1. Initialization**            | Operator lands on the `/` Command Center dashboard watching telemetry roll in.                             |
+| **2. Target Acquisition**        | Operator moves to `/analyze`, configures Scale Factor (um/px) and specifies base Material Family.          |
+| **3. Processing Execution**      | Engine begins crunching. Live logs display terminal output. Dual-progress bars fill geometrically.         |
+| **4. Tactical Review**           | System routes to `/analysis/[id]`. Operator slides interactive `<clipPath>` UI over the raw/analyzed image. |
+| **5. AI Briefing**               | Operator opens Chat terminal. Submits raw inquiries about structures. Engine responds in Rich Markdown.    |
+| **6. Archival Validation**       | System locks findings. Operator exports to PDF. File lands in `/reports`.                                  |
+
+---
+
+## 🧪 5. Core Algorithmic Functions
+
+### 🟢 `image_analysis.py` (The Brain)
+Extracts critical metrics from raster data.
+- **`analyze_microstructure()`**: The master entrypoint. Coordinates grayscale conversion, CLAHE scaling, Otsu thresholding, LAB phase clustering, and blob measurement.
+- **Morphological Background Corection**: Employs a custom `disk` envelope filter using scikit-image to normalize illumination gradients and prevent edge artifacts.
+- **Shape Profiling**: Converts standard blobs into properties like Roundness, Density, and Eccentricity via OpenCV region props.
+
+### 🔵 `AnalysisViewerPage` (`/analysis/[id]/page.tsx`)
+The primary Operator HUD. 
+- **`exportToPDF()`**: Snaps a frozen context of the specific DOM React Reference and fires it to a print-ready binary.
+- **`react-markdown` Rendering**: Intercepts the raw LLM responses and compiles them safely into Tailwind standard `prose`, protecting against escaping tags while delivering HTML tables and code flowsheets.
+- **Slider Sync**: Overlays images identically by computing CSS `clip-path: inset(0 X% 0 0)` linked to mouse coordinates.
+
+### 🔴 Compare Matrix (`/compare/page.tsx`)
+The Comparative Differential System.
+- Interrogates multiple analysis IDs, triggering proportional bar fills highlighting the delta between Grain Sizes and Defect Percentages of separate alloys.
+
+<br/>
+
+<div align="center">
+<i>"To engineer the future, one must first precisely characterize the present."</i>
+<br />
+<code>> SYS_ADMIN.AUTH(OMEGA_LEVEL)</code>
+</div>
