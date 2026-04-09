@@ -168,8 +168,7 @@ def _detect_boundaries_god(image):
 
 def detect_grain_boundaries(preprocessed: np.ndarray) -> tuple:
     """Unified entry point for God-Level boundary detection."""
-    from skimage import feature, segmentation, future
-    from skimage.future import graph
+    from skimage import feature, segmentation
     from skimage.segmentation import find_boundaries
     
     # 1. Boundary Map
