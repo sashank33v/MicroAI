@@ -376,6 +376,7 @@ async def chat_with_ai(body: ChatRequest):
         return {"reply": "Groq API key missing. Cannot provide AI Chat."}
     
     ctx = body.context
+    phases_text = ', '.join([f"{p.get('name')} ({p.get('percentage')}%)" for p in ctx.get('phases', [])])
     system_prompt = (
         f"You are a Senior Metallurgical Scientist with 25 years of experience in materials engineering, microscopy, and failure analysis.\n"
         f"The user is viewing an AI microstructure analysis report for the material family: {ctx.get('material_type', 'Unknown')}.\n"
@@ -383,7 +384,7 @@ async def chat_with_ai(body: ChatRequest):
         f"- Grain Count: {ctx.get('grain_stats', {}).get('count')}\n"
         f"- Average Grain Size: {ctx.get('grain_stats', {}).get('avg_size_um')} um\n"
         f"- Defect Percentage: {ctx.get('defect_percentage')}%\n"
-        f"- Phases Detected: {', '.join([f'{p.get('name')} ({p.get('percentage')}%)' for p in ctx.get('phases', [])])}\n\n"
+        f"- Phases Detected: {phases_text}\n\n"
         f"Answer their questions concisely and professionally based ONLY on standard metallurgical science and the provided metrics. Do not refuse to answer, just provide your best estimate as a senior engineer."
     )
     
