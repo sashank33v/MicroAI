@@ -186,10 +186,14 @@ def detect_grain_boundaries(preprocessed: np.ndarray) -> tuple:
     def weight_boundary(graph, src, dst, n):
         return np.mean(boundary_map[n['boundary']])
     
+    def merge_nodes(graph, src, dst):
+        """Custom node merging for RAG."""
+        pass  # merge_hierarchical handles the graph structure; we just need a no-op or attribute merger
+    
     g = graph.rag_boundary(labels, boundary_map)
     labels_merged = graph.merge_hierarchical(labels, g, thresh=0.08, rag_copy=False,
                                             in_place_merge=True,
-                                            merge_func=graph.merge_nodes,
+                                            merge_func=merge_nodes,
                                             weight_func=weight_boundary)
     
     # 4. Final Masks
