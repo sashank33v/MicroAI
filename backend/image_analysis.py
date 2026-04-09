@@ -6,7 +6,7 @@ texture-aware multi-phase estimation, and Groq LLM explanations.
 
 import cv2
 import numpy as np
-from skimage import measure, morphology, filters, feature, segmentation, exposure
+from skimage import measure, morphology, filters, feature, segmentation, exposure, graph
 from skimage.restoration import denoise_tv_chambolle
 from skimage.morphology import disk, remove_small_objects
 from skimage.feature import local_binary_pattern
@@ -16,9 +16,8 @@ from sklearn.mixture import GaussianMixture
 import os, time, base64, io, math, traceback
 
 # Groq LLM for explanations
-import os
-from dotenv import load_dotenv
-load_dotenv()
+import os, uuid
+from datetime import datetime
 
 try:
     from groq import Groq
