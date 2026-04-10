@@ -382,7 +382,18 @@ async def compare_analyses(body: CompareRequest):
 @app.post("/api/chat")
 async def chat_with_ai(body: ChatRequest):
     if not groq_client:
-        return {"reply": "Groq API key missing. Cannot provide AI Chat."}
+        ctx = body.context
+        reply = (
+            f"### Metallurgical Analysis Insight (Offline Mode)\n\n"
+            f"I am currently in **Offline Mode** because no `GROQ_API_KEY` was detected. "
+            f"However, based on the vision telemetry for this **{ctx.get('material_type', 'Sample')}**:\n\n"
+            f"- **Grain Distribution**: Optimized detection of `{ctx.get('grain_stats', {}).get('count')}` regions.\n"
+            f"- **Structural Integrity**: The defect percentage is **{ctx.get('defect_percentage', 0):.2f}%**, "
+            f"which is {'within' if ctx.get('defect_percentage', 0) < 5 else 'outside'} typical safety tolerances.\n"
+            f"- **Crystalline State**: Mean grain size of **{ctx.get('grain_stats', {}).get('avg_size_um', 0)} μm** detected.\n\n"
+            f"To enable deep metallurgical modeling and interactive engineering advice, please configure a Groq API key."
+        )
+        return {"reply": reply}
     
     ctx = body.context
     phases_text = ', '.join([f"{p.get('name')} ({p.get('percentage')}%)" for p in ctx.get('phases', [])])
