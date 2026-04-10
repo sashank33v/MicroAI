@@ -13,6 +13,7 @@ from skimage.feature import local_binary_pattern
 from scipy import ndimage
 from scipy.signal import find_peaks
 from sklearn.mixture import GaussianMixture
+from skimage.filters import meijering, sato
 import os, time, base64, io, math, traceback
 
 # Groq LLM for explanations
@@ -141,8 +142,6 @@ def preprocess_image(image: np.ndarray) -> np.ndarray:
 
 def _detect_boundaries_god(image):
     """Advanced boundary detection using multi-scale ridge detection."""
-    from skimage.filters import meijering, sato
-    
     # 1. Ridge detection for thin, faint boundaries
     denoised = denoise_tv_chambolle(image, weight=0.1)
     ridge_m = meijering(denoised, sigmas=[1, 2], black_ridges=True)
@@ -182,27 +181,16 @@ def detect_grain_boundaries(preprocessed: np.ndarray) -> tuple:
     markers, _ = ndimage.label(mask)
     labels = segmentation.watershed(boundary_map, markers, mask=binary_adaptive)
     
-    # 3. RAG-based Region Merging (Eliminates fragmenting)
-    def weight_boundary(graph, src, dst, n):
-        """Safer weight computation for RAG."""
-        try:
-            boundary = n.get('boundary', None)
-            if boundary is not None and len(boundary) > 0:
-                # Ensure we handle the boundary coordinates as a tuple for indexing
-                return float(np.mean(boundary_map[tuple(boundary)]))
-        except Exception:
-            pass
-        return 1.0
-    
-    def merge_nodes(graph, src, dst):
-        """Safe merge function for RAG."""
-        pass
-    
-    g = graph.rag_boundary(labels, boundary_map)
-    labels_merged = graph.merge_hierarchical(labels, g, thresh=0.08, rag_copy=False,
-                                            in_place_merge=True,
-                                            merge_func=merge_nodes,
-                                            weight_func=weight_boundary)
+    # 3. Cleanup segmentation (Alternative to RAG merging for stability)
+    from skimage.segmentation import expand_labels, relabel_sequential
+    # Remove fragments
+    mask_clean = morphology.remove_small_objects(labels > 0, min_size=64) # Keep as is, it's safer than max_size if the warning is confusing
+    labels_clean = labels.copy()
+    labels_clean[~mask_clean] = 0
+    # Sequential relabeling
+    labels_merged, _, _ = relabel_sequential(labels_clean)
+    # Fill gaps left by removed fragments
+    labels_merged = expand_labels(labels_merged, distance=10)
     
     # 4. Final Masks
     vis_boundaries = find_boundaries(labels_merged, mode='thick')
@@ -249,10 +237,16 @@ def estimate_grain_sizes(markers: np.ndarray, scale_um_per_px: float = 0.5) -> d
         circularities.append(min(1.0, circ))
 
         # Aspect ratio from oriented bounding box
-        if p.minor_axis_length > 0:
-            aspect_ratios.append(p.major_axis_length / p.minor_axis_length)
+        if hasattr(p, 'axis_minor_length'):
+            if p.axis_minor_length > 0:
+                aspect_ratios.append(p.axis_major_length / p.axis_minor_length)
+            else:
+                aspect_ratios.append(1.0)
         else:
-            aspect_ratios.append(1.0)
+            if p.minor_axis_length > 0:
+                aspect_ratios.append(p.major_axis_length / p.minor_axis_length)
+            else:
+                aspect_ratios.append(1.0)
 
         area_um2 = p.area * (scale_um_per_px ** 2)
         diameters_um.append(2 * np.sqrt(area_um2 / np.pi))
@@ -836,13 +830,19 @@ def generate_explanation(gs, phases, defects, defect_pct, quality, material_type
     """
 
     try:
+        if not os.environ.get("GROQ_API_KEY"):
+             return _template_explanation(gs, phases, defects, defect_pct, quality)
+             
+        client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
         chat_completion = client.chat.completions.create(
             messages=[{"role": "user", "content": prompt}],
             model="llama-3.3-70b-versatile",
-            temperature=0.2
+            temperature=0.2,
+            timeout=20.0
         )
         return chat_completion.choices[0].message.content
-    except Exception:
+    except Exception as e:
+        print(f"Groq API Error: {str(e)}")
         return _template_explanation(gs, phases, defects, defect_pct, quality)
 
 

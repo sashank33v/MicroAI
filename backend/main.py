@@ -14,10 +14,19 @@ import uuid
 import os
 import shutil
 import json
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# ── Groq Setup ──
+from groq import Groq
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
 # ── Conditional imports ──
 try:
-    from image_analysis import analyze_microstructure
+    import image_analysis
     CV_AVAILABLE = True
 except ImportError:
     CV_AVAILABLE = False
@@ -249,7 +258,7 @@ async def run_analysis(image_id: str, material_type: str = Query("Unknown"), sca
     if matching and CV_AVAILABLE:
         image_path = os.path.join(UPLOAD_DIR, matching[0])
         try:
-            result = analyze_microstructure(image_path, scale_um_per_px=scale_um_per_px, material_type=material_type)
+            result = image_analysis.analyze_microstructure(image_path, scale_um_per_px=scale_um_per_px, material_type=material_type)
             analysis_id = "an_" + uuid.uuid4().hex[:6]
             # Build grain stats with new fields
             gs_data = result["grain_stats"]
