@@ -1,0 +1,24 @@
+D:\certificates\ai-microstructure-analyzer\backend\image_analysis.py:187: FutureWarning: Parameter `min_size` is deprecated since version 0.26.0 and will be removed in 2.0.0 (or later). To avoid this warning, please use the parameter `max_size` instead. For more details, see the documentation of `remove_small_objects`. Note that the new threshold removes objects smaller than **or equal to** its value, while the previous parameter only removed smaller ones.
+  mask_clean = morphology.remove_small_objects(labels > 0, min_size=64) # Keep as is, it's safer than max_size if the warning is confusing
+Created test image at test_img.png
+Starting analysis...
+
+--- Analysis Success ---
+Grain Count: 300
+ASTM G: 14.0
+Confidence: 91.0%
+Phases Detected: 2
+Defects Detected: 2
+Processing Time: 4.95s
+
+AI Explanation Generated:
+MICROSTRUCTURE OVERVIEW: The specimen exhibits a very fine, moderately uniform grain structure. Analysis measured 300 complete grains (edge-touching grains excluded per ASTM E112 ?9).
+
+GRAIN ANALYSIS: Mean equivalent circular diameter (ECD) = 11.4 ?m (ASTM E112 grain size number G = 14.0). Size distribution: 4.6?22.2 ?m (? = 4.7 ?m). Heyn intercept grain size: 14.6 ?m. Mean circularity = 0.718, eccentricity = 0.669.
+
+MECHANICAL PROPERTIES: Based on Hall-Petch relationship (?_y = ?_0 + k_y?d^(-1/...
+
+--- Image Data Generated ---
+Overlay Base64 Length: 105204
+
+[PASSED] Backend analysis pipeline is stable.

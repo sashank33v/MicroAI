@@ -141,25 +141,33 @@ def preprocess_image(image: np.ndarray) -> np.ndarray:
 # ═══════════════════════════════════════════════════════════════
 
 def _detect_boundaries_god(image):
-    """Advanced boundary detection using multi-scale ridge detection."""
-    # 1. Ridge detection for thin, faint boundaries
-    denoised = denoise_tv_chambolle(image, weight=0.1)
-    ridge_m = meijering(denoised, sigmas=[1, 2], black_ridges=True)
-    ridge_s = sato(denoised, sigmas=[1, 2], black_ridges=True)
-    ridge_map = np.maximum(ridge_m, ridge_s)
+    """Advanced multi-scale boundary fusion using Sato, Meijering, and Frangi filters."""
+    from skimage.filters import sato, meijering, frangi
+    
+    # Scale ranges for diverse boundary thicknesses
+    sigmas = [0.5, 1.0, 1.5, 2.0]
+    
+    # 1. Multi-scale Ridge Fusion
+    ridge_sato = sato(image, sigmas=sigmas, black_ridges=True)
+    ridge_meijering = meijering(image, sigmas=sigmas, black_ridges=True)
+    ridge_frangi = frangi(image, sigmas=sigmas, black_ridges=True)
+    
+    # Normalize and fuse with specific weighting
+    ridge_map = (ridge_sato * 0.4) + (ridge_meijering * 0.4) + (ridge_frangi * 0.2)
     ridge_map = (ridge_map - ridge_map.min()) / (ridge_map.max() - ridge_map.min() + 1e-8)
     
     # 2. Local Gradient for contrast edges
     grad_sobel = filters.sobel(image)
     grad_sobel = (grad_sobel - grad_sobel.min()) / (grad_sobel.max() - grad_sobel.min() + 1e-8)
     
-    # 3. Adaptive support
-    block_size = max(11, min(51, int(min(image.shape) / 15) | 1))
-    adaptive = filters.threshold_local(image, block_size, offset=5)
+    # 3. Dynamic Adaptive Support
+    # Use localized block size for grain verification
+    block_size = max(11, min(31, int(min(image.shape) / 20) | 1))
+    adaptive = filters.threshold_local(image, block_size, offset=3)
     binary_adaptive = image < adaptive
     
-    # Final Fusion
-    fused = (ridge_map * 0.65) + (grad_sobel * 0.25) + (binary_adaptive.astype(float) * 0.1)
+    # Final Precision Fusion
+    fused = (ridge_map * 0.70) + (grad_sobel * 0.20) + (binary_adaptive.astype(float) * 0.1)
     fused = filters.gaussian(fused, sigma=0.5)
     
     return fused, binary_adaptive
@@ -172,13 +180,28 @@ def detect_grain_boundaries(preprocessed: np.ndarray) -> tuple:
     # 1. Boundary Map
     boundary_map, binary_adaptive = _detect_boundaries_god(preprocessed)
     
-    # 2. Initial Watershed
-    dist = ndimage.distance_transform_edt(boundary_map < 0.15)
-    dist = filters.gaussian(dist, sigma=1.0)
-    coords = feature.peak_local_max(dist, min_distance=10, labels=binary_adaptive)
+    # 2. Refined Watershed with Peak Suppression
+    # Calculate distance transform on the inverse of the boundary map
+    dist = ndimage.distance_transform_edt(boundary_map < 0.2)
+    dist = filters.gaussian(dist, sigma=1.2)
+    
+    # Suppress small peaks (H-maxima) to avoid over-segmentation
+    from skimage.morphology import h_maxima
+    # Using a relative height of 2.0 pixels for peak significance
+    dist_suppressed = h_maxima(dist, h=2.0)
+    
+    # Find markers in the suppressed distance map
+    coords = feature.peak_local_max(dist_suppressed, min_distance=15, labels=binary_adaptive)
+    
+    if len(coords) == 0:
+        # Fallback to standard peaks if suppression was too aggressive
+        coords = feature.peak_local_max(dist, min_distance=10, labels=binary_adaptive)
+        
     mask = np.zeros(dist.shape, dtype=bool)
     mask[tuple(coords.T)] = True
     markers, _ = ndimage.label(mask)
+    
+    # Watershed on the boundary map itself for high-precision edges
     labels = segmentation.watershed(boundary_map, markers, mask=binary_adaptive)
     
     # 3. Cleanup segmentation (Alternative to RAG merging for stability)
@@ -448,29 +471,40 @@ def estimate_phases(gray: np.ndarray, markers: np.ndarray = None, bgr_image: np.
     # Find peaks (potential phase centers)
     peaks, _ = find_peaks(hist_smooth, height=gray.size * 0.003, distance=25, prominence=gray.size * 0.001)
 
-    # --- Step 2: LBP texture features ---
-    lbp = local_binary_pattern(gray, P=8, R=1, method='uniform')
-    lbp_norm = (lbp / lbp.max() * 255).astype(np.uint8) if lbp.max() > 0 else lbp.astype(np.uint8)
+    # --- Step 2: Multi-feature texture descriptors ---
+    # R=1 for fine grains/precipitates, R=3 for coarse textures/lamellar structures
+    lbp_fine = local_binary_pattern(gray, P=8, R=1, method='uniform')
+    lbp_coarse = local_binary_pattern(gray, P=8, R=3, method='uniform')
+    
+    # Local standard deviation (Texture variance)
+    local_std = ndimage.generic_filter(gray, np.std, size=5)
+    
+    # Normalize features
+    def norm(f): return (f - f.min()) / (f.max() - f.min() + 1e-8)
+    
+    lbp_f_norm = norm(lbp_fine)
+    lbp_c_norm = norm(lbp_coarse)
+    l_std_norm = norm(local_std)
+    intensity_norm = norm(gray.astype(float))
 
     # --- Step 3: GMM clustering features ---
-    step = max(1, int(np.sqrt(h * w / 50000)))
+    step = max(1, int(np.sqrt(h * w / 60000)))
     
-    # Base features: Intensity & Texture
-    intensity_samples = gray[::step, ::step].ravel().astype(np.float64).reshape(-1, 1)
-    texture_samples = lbp_norm[::step, ::step].ravel().astype(np.float64).reshape(-1, 1)
-    features = np.hstack([intensity_samples * 2, texture_samples])
+    # Feature Stack: Intensity (2x weight), Fine Texture, Coarse Texture, Variance
+    features = np.hstack([
+        intensity_norm[::step, ::step].ravel().reshape(-1, 1) * 2.0,
+        lbp_f_norm[::step, ::step].ravel().reshape(-1, 1),
+        lbp_c_norm[::step, ::step].ravel().reshape(-1, 1),
+        l_std_norm[::step, ::step].ravel().reshape(-1, 1) * 0.5
+    ])
     
     # Color features: Support for Cu/Zn/Brass alloys
     if bgr_image is not None and len(bgr_image.shape) == 3:
         lab_image = cv2.cvtColor(bgr_image, cv2.COLOR_BGR2LAB)
-        # Extract A (Green-Red) and B (Blue-Yellow) channels
         a_channel = lab_image[:, :, 1]
         b_channel = lab_image[:, :, 2]
-        
-        a_samples = a_channel[::step, ::step].ravel().astype(np.float64).reshape(-1, 1)
-        b_samples = b_channel[::step, ::step].ravel().astype(np.float64).reshape(-1, 1)
-        
-        # Heavily weight color variance to separate colored phases
+        a_samples = norm(a_channel[::step, ::step]).ravel().reshape(-1, 1)
+        b_samples = norm(b_channel[::step, ::step]).ravel().reshape(-1, 1)
         features = np.hstack([features, a_samples * 1.5, b_samples * 1.5])
 
     # Determine optimal number of phases (2-4)
@@ -491,14 +525,17 @@ def estimate_phases(gray: np.ndarray, markers: np.ndarray = None, bgr_image: np.
     gmm = GaussianMixture(n_components=best_n, random_state=42, max_iter=200, covariance_type='full')
     gmm.fit(features)
 
-    # Predict on full image
-    full_intensity = gray.ravel().astype(np.float64).reshape(-1, 1)
-    full_texture = lbp_norm.ravel().astype(np.float64).reshape(-1, 1)
-    full_features = np.hstack([full_intensity * 2, full_texture])
+    # Predict on full image with expanded features
+    full_features = np.hstack([
+        intensity_norm.ravel().reshape(-1, 1) * 2.0,
+        lbp_f_norm.ravel().reshape(-1, 1),
+        lbp_c_norm.ravel().reshape(-1, 1),
+        l_std_norm.ravel().reshape(-1, 1) * 0.5
+    ])
     
     if bgr_image is not None and len(bgr_image.shape) == 3:
-        a_full = lab_image[:, :, 1].ravel().astype(np.float64).reshape(-1, 1)
-        b_full = lab_image[:, :, 2].ravel().astype(np.float64).reshape(-1, 1)
+        a_full = norm(lab_image[:, :, 1]).ravel().reshape(-1, 1)
+        b_full = norm(lab_image[:, :, 2]).ravel().reshape(-1, 1)
         full_features = np.hstack([full_features, a_full * 1.5, b_full * 1.5])
 
     labels_flat = gmm.predict(full_features)
